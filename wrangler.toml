@@ -1,0 +1,19 @@
+name = "whoop-sync"
+main = "src/index.ts"
+compatibility_date = "2025-09-01"
+
+# Runs daily at 03:30 UTC = 09:00 IST. Also POST /sync to run on demand.
+[triggers]
+crons = ["30 3 * * *"]
+
+# Create with:  npx wrangler kv namespace create TOKENS
+# then paste the returned id below.
+[[kv_namespaces]]
+binding = "TOKENS"
+id = "PASTE_KV_NAMESPACE_ID_HERE"
+
+# Secrets (set with `npx wrangler secret put NAME`):
+#   WHOOP_CLIENT_ID, WHOOP_CLIENT_SECRET, NOTION_TOKEN, SYNC_KEY
+[vars]
+NOTION_DB_ID = "8b5ab0f7d9f34395b9133cbcd16cbab3"
+DAYS_BACK = "3"

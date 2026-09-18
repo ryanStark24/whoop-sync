@@ -1,0 +1,34 @@
+name: whoop-sync
+on:
+  schedule:
+    - cron: "30 3 * * *"   # 09:00 IST daily
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+
+      - name: Sync WHOOP → Notion
+        id: sync
+        run: node src/sync.mjs
+        env:
+          WHOOP_CLIENT_ID: ${{ secrets.WHOOP_CLIENT_ID }}
+          WHOOP_CLIENT_SECRET: ${{ secrets.WHOOP_CLIENT_SECRET }}
+          WHOOP_REFRESH_TOKEN: ${{ secrets.WHOOP_REFRESH_TOKEN }}
+          NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
+          NOTION_DB_ID: ${{ secrets.NOTION_DB_ID }}
+          DAYS_BACK: "3"
+
+      # WHOOP rotates the refresh token on every refresh — persist the new one or the next run fails.
+      - name: Rotate refresh token secret
+        if: steps.sync.outputs.refresh_token != ''
+        run: gh secret set WHOOP_REFRESH_TOKEN --body "${{ steps.sync.outputs.refresh_token }}" --repo "$GITHUB_REPOSITORY"
+        env:
+          GH_TOKEN: ${{ secrets.REPO_PAT }}

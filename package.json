@@ -1,0 +1,11 @@
+{
+  "name": "whoop-sync",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "auth": "node src/auth.mjs",
+    "sync": "node src/sync.mjs"
+  }
+}
