@@ -3,7 +3,12 @@ name: whoop-sync
 on:
   schedule:
     - cron: '30 3 * * *'
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      days_back:
+        description: 'How many days to pull (3 for the daily run; 180 for a one-off backfill)'
+        required: false
+        default: '3'
 
 jobs:
   sync:
@@ -26,7 +31,7 @@ jobs:
           WHOOP_REFRESH_TOKEN: ${{ secrets.WHOOP_REFRESH_TOKEN }}
           NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
           NOTION_DB_ID: ${{ secrets.NOTION_DB_ID }}
-          DAYS_BACK: '3'
+          DAYS_BACK: ${{ inputs.days_back || '3' }}
 
       - name: Rotate refresh token secret
         if: ${{ steps.sync.outputs.refresh_token != '' }}

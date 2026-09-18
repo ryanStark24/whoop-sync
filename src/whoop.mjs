@@ -22,7 +22,13 @@ export class Whoop {
   async get(path, params = {}) {
     const u = new URL(API + path);
     for (const [k, v] of Object.entries(params)) if (v != null) u.searchParams.set(k, v);
-    const r = await fetch(u, { headers: this.h });
+    // A backfill makes two calls per day of history; WHOOP allows about 100 a minute. On 429, wait as told and try again.
+    let r = await fetch(u, { headers: this.h });
+    for (let attempt = 0; r.status === 429 && attempt < 6; attempt++) {
+      const wait = Number(r.headers.get("retry-after") ?? r.headers.get("x-ratelimit-reset") ?? 20);
+      await new Promise((ok) => setTimeout(ok, Math.min(Math.max(wait, 5), 70) * 1000));
+      r = await fetch(u, { headers: this.h });
+    }
     if (r.status === 404) return null;
     if (!r.ok) throw new Error(`WHOOP ${path} → ${r.status} ${await r.text()}`);
     return r.json();

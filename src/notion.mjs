@@ -7,7 +7,12 @@ export class Notion {
   }
 
   async req(method, path, body) {
-    const r = await fetch(API + path, { method, headers: this.h, body: body ? JSON.stringify(body) : undefined });
+    let r = await fetch(API + path, { method, headers: this.h, body: body ? JSON.stringify(body) : undefined });
+    // Notion allows about three requests a second; a long backfill can brush against that.
+    for (let attempt = 0; r.status === 429 && attempt < 5; attempt++) {
+      await new Promise((ok) => setTimeout(ok, (Number(r.headers.get("retry-after")) || 2) * 1000));
+      r = await fetch(API + path, { method, headers: this.h, body: body ? JSON.stringify(body) : undefined });
+    }
     const j = await r.json();
     if (!r.ok) throw new Error(`Notion ${path} → ${r.status} ${JSON.stringify(j).slice(0, 300)}`);
     return j;
