@@ -2,7 +2,9 @@ name: whoop-sync
 
 on:
   schedule:
-    - cron: '30 3 * * *'
+    - cron: '30 3 * * *'    # 09:00 IST
+    - cron: '30 7 * * *'    # 13:00 IST: a late morning's recovery reaches the phone the same day
+    - cron: '30 15 * * *'   # 21:00 IST: the day's strain and workouts
   workflow_dispatch:
     inputs:
       days_back:

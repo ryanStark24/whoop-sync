@@ -8,6 +8,9 @@ const TZ = "Asia/Kolkata";
 const DAYS = Number(env("DAYS_BACK", "3"));
 
 const localDate = (iso) => new Date(iso).toLocaleDateString("en-CA", { timeZone: TZ }); // YYYY-MM-DD
+// A WHOOP cycle starts when he falls asleep, so a night that began before midnight used to be filed under the evening before: two cycles landed on
+// one date (the second overwriting the first) and the morning they belong to got no row. A cycle belongs to the day it wakes into: start + 12 h.
+const cycleDay = (iso) => localDate(new Date(new Date(iso).getTime() + 12 * 3_600_000).toISOString());
 const hrs = (ms) => (ms == null ? null : ms / 3_600_000);
 const zone = (rec) => (rec == null ? null : rec >= 67 ? "Green" : rec >= 34 ? "Yellow" : "Red");
 
@@ -33,7 +36,7 @@ async function main() {
   }
 
   for (const c of cycles) {
-    const day = localDate(c.start);
+    const day = cycleDay(c.start);
     const [rec, slp] = await Promise.all([whoop.cycleRecovery(c.id), whoop.cycleSleep(c.id)]);
     const rs = rec?.score ?? {}, ss = slp?.score ?? {}, st = ss.stage_summary ?? {};
     const asleep = st.total_in_bed_time_milli != null ? st.total_in_bed_time_milli - (st.total_awake_time_milli ?? 0) : null;
